@@ -1,0 +1,200 @@
+name: mental_etudiant_openmontage
+version: "1.0"
+description: >
+  Research-led French student wellbeing documentary montage. Retrieves actual
+  motion footage only from Archive.org and Wikimedia Commons, then edits it
+  into calm, narrated essays with a dark, restrained visual treatment.
+category: documentary
+stability: beta
+default_checkpoint_policy: guided
+reference_input:
+  supported: false
+orchestration:
+  mode: executive-producer
+  skill: pipelines/mental-etudiant-openmontage/executive-producer
+  budget_default_usd: 0.00
+  max_revisions_per_stage: 2
+  max_send_backs: 2
+  max_wall_time_minutes: 60
+extensions:
+  custom_scripts: true
+  custom_playbooks: true
+  custom_skills: true
+  custom_tools: false
+required_skills:
+  - pipelines/mental-etudiant-openmontage/executive-producer
+  - pipelines/mental-etudiant-openmontage/research-director
+  - pipelines/mental-etudiant-openmontage/proposal-director
+  - pipelines/mental-etudiant-openmontage/script-director
+  - pipelines/mental-etudiant-openmontage/scene-plan-director
+  - pipelines/mental-etudiant-openmontage/assets-director
+  - pipelines/mental-etudiant-openmontage/edit-director
+  - pipelines/mental-etudiant-openmontage/compose-director
+  - pipelines/mental-etudiant-openmontage/publish-director
+  - meta/reviewer
+  - meta/checkpoint-protocol
+compatible_playbooks:
+  recommended: [premium-minimalist]
+  also_works: [clean-professional]
+  custom_allowed: true
+metadata:
+  channel: Mental Étudiant
+  language: fr-FR
+  target_duration_seconds: [480, 600]
+  narration_word_count: [1300, 1500]
+  test_demo_seconds: 60
+  scene_count: 12
+  clips_per_scene: [2, 3]
+  allowed_sources: [archive_org, wikimedia]
+  allowed_license_classes: [public_domain, creative_commons]
+  license_filter: public_domain_or_creative_commons
+  footage_only: true
+  generated_images_allowed: false
+  generated_video_allowed: false
+  visual_identity:
+    background: "#0F0F0F"
+    text: "#FFFFFF"
+    accent: "#FFD700"
+    footage_overlay: "black at 60% opacity"
+    direction: "minimal typography, generous negative space, restrained transitions"
+  narration:
+    preferred_provider: piper_tts
+    fallback_provider: gtts_tts
+    language: fr
+    requested_style: "Henri-like, calm, measured, deep and reassuring; style simulation only"
+    rate: 0.85
+    pause_seconds: 0.45
+    claims_real_henri_voice: false
+  renderer_family: documentary-montage
+  render_runtime: ffmpeg
+  audio_plan: "Use a subtle instrumental bed only when a source and license can be verified; narration-only is an approved fallback for short demos."
+stages:
+  - name: research
+    skill: pipelines/mental-etudiant-openmontage/research-director
+    produces: [research_brief]
+    tools_available: [web_search]
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - Claims about student stress and focus are grounded in credible sources
+      - Research distinguishes general wellbeing suggestions from clinical advice
+      - Source links and publication details are recorded
+    success_criteria:
+      - Schema-valid research_brief artifact
+      - At least three reliable sources support usable claims
+  - name: proposal
+    skill: pipelines/mental-etudiant-openmontage/proposal-director
+    required_artifacts_in: [research_brief]
+    produces: [brief, proposal_packet, decision_log]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - French audience, 8–10 minute target, and 60-second test scope are explicit
+      - Long-form arc contains a 30-second hook, five chapters, and conclusion
+      - Footage source allowlist and Henri-like voice choice are explicit
+      - Audio and music plans are explicit and licensed
+    success_criteria:
+      - Schema-valid brief and proposal_packet artifacts
+      - Decision log includes source, voice, and full-run/sample approval policy
+  - name: script
+    skill: pipelines/mental-etudiant-openmontage/script-director
+    required_artifacts_in: [brief, research_brief]
+    produces: [script, youtube_metadata]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Main script is 1300–1500 French words; test override is 90–120 words
+      - Structure is hook, five chapters, and conclusion
+      - Advice is calm, practical, non-clinical, and grounded in research
+      - Title, description, and three thumbnail text options are included
+    success_criteria:
+      - Schema-valid script artifact
+      - Topic-specific YouTube metadata is present
+  - name: scene_plan
+    skill: pipelines/mental-etudiant-openmontage/scene-plan-director
+    required_artifacts_in: [script, brief]
+    produces: [scene_plan]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Full video has exactly 12 scenes with archive search queries
+      - Every scene is planned for 2–3 actual motion clips
+      - Search queries match Archive.org or Wikimedia Commons only
+      - Test mode scenes fit the 60-second runtime
+    success_criteria:
+      - Schema-valid scene_plan artifact
+      - Twelve retrieval-ready scene slots are present for long-form mode
+  - name: assets
+    skill: pipelines/mental-etudiant-openmontage/assets-director
+    required_artifacts_in: [scene_plan, brief]
+    produces: [asset_manifest]
+    required_tools: [direct_clip_search, video_downloader]
+    optional_tools: [tts_selector, piper_tts, gtts_tts, pixabay_music, music_library]
+    tools_available: [direct_clip_search, video_downloader, tts_selector, piper_tts, gtts_tts, pixabay_music, music_library]
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Every selected visual is real downloaded video from an allowed archive
+      - direct_clip_search used the fail-closed public-domain/Creative-Commons license filter
+      - Missing or generic rights metadata is rejected, not inferred as permitted
+      - Every scene has 2–3 distinct motion clips, with provenance and license
+      - No stills, generated images, or generated video are included
+      - Narration language, provider, pace, pauses, and style simulation are recorded
+      - Audio assets have source/license provenance
+    success_criteria:
+      - Schema-valid asset_manifest artifact
+      - Every selected video has a per-item Public Domain or Creative Commons license
+      - All media paths exist and every visual asset is a playable video
+  - name: edit
+    skill: pipelines/mental-etudiant-openmontage/edit-director
+    required_artifacts_in: [scene_plan, asset_manifest]
+    produces: [edit_decisions]
+    tools_available: [video_trimmer, video_stitch]
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Twelve scenes preserve the intended emotional arc and narration timing
+      - Clips are trimmed and arranged without replacing real footage with stills
+      - Dark overlay is 60%; text uses white and #FFD700 sparingly
+      - Edit includes gentle cuts, breathing room, and legible title timing
+    success_criteria:
+      - Schema-valid edit_decisions artifact
+      - Timeline is 8–10 minutes, or exactly 60 seconds in demo mode
+  - name: compose
+    skill: pipelines/mental-etudiant-openmontage/compose-director
+    required_artifacts_in: [edit_decisions, asset_manifest, brief]
+    produces: [render_report, final_review]
+    required_tools: [video_compose]
+    optional_tools: [audio_mixer, color_grade, video_trimmer, video_stitch]
+    tools_available: [video_compose, audio_mixer, color_grade, video_trimmer, video_stitch]
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - Output is a real-footage-only documentary montage
+      - Duration, audio, dark overlay, white/yellow typography, and licenses are verified
+      - Renderer matches the approved decision log and no silent fallback occurred
+    success_criteria:
+      - Schema-valid render_report artifact
+      - MP4 exists, passes probe, and matches the selected duration
+  - name: publish
+    skill: pipelines/mental-etudiant-openmontage/publish-director
+    required_artifacts_in: [render_report, final_review, asset_manifest]
+    produces: [publish_log]
+    required_tools: [youtube_auto_upload]
+    tools_available: [youtube_auto_upload]
+    # The publish director writes the approved French youtube_metadata artifact
+    # to a temporary JSON file and runs `python upload_youtube.py <final.mp4> <metadata.json>`.
+    # The uploader defaults to private and receives no publish_at value.
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - OAuth account owns the Mental Étudiant channel ID
+      - Only explicit Public Domain or Creative Commons footage passed validation
+      - Video, French title, description, tags, and Education category are uploaded
+      - Uploaded video is private and has no scheduled publication time
+    success_criteria:
+      - Schema-valid publish_log artifact
+      - YouTube returns a video ID and confirms private visibility
