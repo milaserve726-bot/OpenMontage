@@ -1,4 +1,4 @@
-name: Daily Mental Etudiant
+name: Daily Mental Etudiant France
 on:
   schedule:
     - cron: '0 17 * * *'
@@ -11,10 +11,38 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -r requirements.txt || true
-      - run: python3 render_demo.py
-      - run: python3 upload_youtube.py projects/demos/renders/code-to-screen.mp4 metadata.json || echo "need metadata"
-    env:
-      YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-      YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-      YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          pip install gtts pydub google-api-python-client google-auth-httplib2 google-auth-oauthlib
+      - name: Create video
+        run: |
+          python -c "
+          from gtts import gTTS
+          import subprocess, os, random, datetime
+          topics = ['Tu es plus fort que tu le penses. Chaque jour, tu construis ton avenir.', 'Ne laisse pas la peur decider pour toi. Un petit pas chaque jour change tout.', 'Ton cerveau aime la repetition. Travaille 25 minutes, repose-toi, recommence.']
+          text = random.choice(topics) + ' Tu es un etudiant, tu peux reussir. Continue, ne lache rien. Tu es Mental Etudiant.'
+          tts = gTTS(text=text, lang='fr')
+          tts.save('voice.mp3')
+          subprocess.run(['ffmpeg','-y','-f','lavfi','-i','color=c=0x111827:s=1280x720:d=480','-i','voice.mp3','-shortest','-c:v','libx264','-c:a','aac','video.mp4'], check=True)
+          open('title.txt','w').write('MOTIVATION ETUDIANT | Ne Lache Rien | Mental Etudiant')
+          open('desc.txt','w').write('Motivation quotidienne pour les etudiants. Abonne-toi a Mental Etudiant pour reussir tes etudes. #motivation #etudiant #france')
+          print('video ok')
+          "
+      - name: Upload to YouTube
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          python -c "
+          import os
+          from google.oauth2.credentials import Credentials
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaFileUpload
+          creds = Credentials(None, refresh_token=os.environ['YOUTUBE_REFRESH_TOKEN'], token_uri='https://oauth2.googleapis.com/token', client_id=os.environ['YOUTUBE_CLIENT_ID'], client_secret=os.environ['YOUTUBE_CLIENT_SECRET'])
+          yt = build('youtube','v3', credentials=creds)
+          req = yt.videos().insert(part='snippet,status', body={'snippet':{'title':open('title.txt').read(),'description':open('desc.txt').read(),'tags':['motivation','etudiant'],'categoryId':'27'},'status':{'privacyStatus':'public'}}, media_body=MediaFileUpload('video.mp4'))
+          print(req.execute())
+          "
