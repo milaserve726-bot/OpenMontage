@@ -13,8 +13,8 @@ jobs:
           python-version: '3.11'
       - name: Install
         run: pip install imageio-ffmpeg pillow python-dotenv google-api-python-client google-auth-oauthlib openai moviepy
-      - name: Run video
-        run: python run_daily_real_video.py --topic "stress examen : comment rester calme et réussir"
+      - name: Run video 8-10 min
+        run: python run_daily_real_video.py --topic "stress examen : comment rester calme et réussir" --duration 540
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
