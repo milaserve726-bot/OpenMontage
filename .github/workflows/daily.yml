@@ -12,7 +12,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install
-        run: pip install jsonschema pyyaml openai imageio-ffmpeg pillow python-dotenv google-api-python-client google-auth-oauthlib openai moviepy
+      pip install -r requirements.txt
       - name: Run video 8-10 min
         run: python run_daily_real_video.py --topic "stress examen - comment rester calme et reussir"
         env:
