@@ -1,67 +1,23 @@
-name: Daily Mental Etudiant France
+name: Daily Video Mental Etudiant
 on:
   schedule:
     - cron: '0 17 * * *'
   workflow_dispatch:
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
-          pip install gtts pydub pillow google-api-python-client google-auth-httplib2 google-auth-oauthlib
-      - name: Create 8min video + Thumbnail
-        run: |
-          python -c "
-          from gtts import gTTS
-          from PIL import Image, ImageDraw, ImageFont
-          import subprocess, random, os, textwrap
-          titles = [
-            ('TU VAS REUSSIR | Motivation Etudiant 8 Min Pour Ne Jamais Abandonner', 'Tu vas reussir. Ecoute bien.'),
-            ('NE LACHE RIEN | 8 Minutes Pour Changer Ta Vie d Etudiant', 'Ne lache rien. Continue.'),
-            ('DISCIPLINE > MOTIVATION | La Verite Que Personne Ne Te Dit', 'La discipline change tout.')
-          ]
-          title, hook = random.choice(titles)
-          open('title.txt','w',encoding='utf-8').write(title)
-          script = hook + ' Tu es un etudiant. Tu as un reve. Chaque matin, tu as le choix : abandonner ou continuer. Les grands reussissent parce qu ils continuent quand c est difficile. Travaille 25 minutes, concentre-toi, coupe ton telephone. Puis repose-toi 5 minutes. Recommence. C est comme ca qu on construit l avenir. Tu n as pas besoin d etre parfait, tu as besoin d etre regulier. Un petit pas chaque jour. Dans 6 mois, tu ne te reconnaitras plus. Tu es plus fort que ta fatigue. Tu es plus fort que ta peur. Tu es Mental Etudiant. Continue. Ne lache rien. Ton avenir commence aujourd hui. ' * 6
-          tts = gTTS(text=script, lang='fr', slow=False)
-          tts.save('voice.mp3')
-          subprocess.run(['ffmpeg','-y','-f','lavfi','-i','color=c=0x111827:s=1280x720:d=480','-i','voice.mp3','-shortest','-c:v','libx264','-c:a','aac','video.mp4'], check=True)
-          img = Image.new('RGB', (1280,720), (17,24,39))
-          d = ImageDraw.Draw(img)
-          d.rectangle([0,0,1280,200], fill=(245,158,11))
-          d.text((60,60), 'MENTAL ETUDIANT', fill=(0,0,0))
-          d.text((60,280), 'NE LACHE', fill=(255,255,255))
-          d.text((60,400), 'RIEN', fill=(245,158,11))
-          d.text((60,550), '8 MIN POUR REUSSIR', fill=(255,255,255))
-          img.save('thumb.jpg')
-          desc = title + '\n\nMotivation quotidienne pour les etudiants en France. Abonne-toi a Mental Etudiant.\n\n#motivation #etudiant #france #reussite #discipline'
-          open('desc.txt','w',encoding='utf-8').write(desc)
-          print('8min video + thumb ok')
-          "
-      - name: Upload to YouTube
+      - name: Install
+        run: pip install imageio-ffmpeg pillow python-dotenv google-api-python-client google-auth-oauthlib openai moviepy
+      - name: Run video
+        run: python run_daily_real_video.py --topic "stress examen : comment rester calme et réussir"
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-        run: |
-          python -c "
-          import os
-          from google.oauth2.credentials import Credentials
-          from googleapiclient.discovery import build
-          from googleapiclient.http import MediaFileUpload
-          creds = Credentials(None, refresh_token=os.environ['YOUTUBE_REFRESH_TOKEN'], token_uri='https://oauth2.googleapis.com/token', client_id=os.environ['YOUTUBE_CLIENT_ID'], client_secret=os.environ['YOUTUBE_CLIENT_SECRET'])
-          yt = build('youtube','v3', credentials=creds)
-          req = yt.videos().insert(part='snippet,status', body={'snippet':{'title':open('title.txt',encoding='utf-8').read(),'description':open('desc.txt',encoding='utf-8').read(),'tags':['motivation','etudiant','france'],'categoryId':'27'},'status':{'privacyStatus':'public'}}, media_body=MediaFileUpload('video.mp4'))
-          vid = req.execute()
-          print(vid)
-          yt.thumbnails().set(videoId=vid['id'], media_body=MediaFileUpload('thumb.jpg')).execute()
-          print('thumb uploaded')
-          "
-  
+          YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
