@@ -1,0 +1,106 @@
+name: mental_etudiant_henri
+version: "1.0"
+description: >
+  Eight-minute French student wellbeing and study videos for students in France, girls and boys.
+  Uses a calm, minimal visual identity with powerful French packaging.
+category: generated
+stability: beta
+default_checkpoint_policy: guided
+compatible_playbooks:
+  recommended: [premium-minimalist]
+  also_works: [clean-professional]
+  custom_allowed: true
+extensions:
+  custom_scripts: true
+  custom_playbooks: true
+  custom_skills: true
+  custom_tools: false
+metadata:
+  channel: Mental Étudiant
+  language: fr-FR
+  target_audience: "students in France, girls and boys"
+  target_duration_seconds: [480, 480]
+  narration_word_count: [1100, 1200]
+  youtube_title_options: 3
+  select_strongest_french_title: true
+  content_topics: [revision, exams, concentration, memory, motivation, organization, partiels, bac, university]
+  thumbnail_direction: "clean, motivating, student-focused, large readable French text"
+  structure:
+    - hook
+    - chapter_1
+    - chapter_2
+    - chapter_3
+    - chapter_4
+    - chapter_5
+    - conclusion
+  voice:
+    requested_provider: gtts
+    requested_voice: "Henri-style (simulated; gTTS has no named voice selection)"
+    lang: fr
+    slow: false
+    delivery: "calm, measured, lower-pitched; Henri style is simulated"
+    rate: 0.85
+    pitch_scale: 0.97
+    pause_seconds: 0.45
+  tts_provider: gtts
+  tts_settings:
+    lang: fr
+    slow: false
+    voice_style: calm
+    rate: 0.85
+    pitch_scale: 0.97
+    pause_seconds: 0.45
+  visual_identity:
+    background: "#0F0F0F"
+    text: "#FFFFFF"
+    accent: "#FFD700"
+    direction: "minimal typography, generous negative space, restrained transitions"
+  deliverables:
+    - youtube_title
+    - three_french_title_options
+    - strongest_selected_title
+    - youtube_description
+    - thumbnail_text_ideas
+stages:
+  - name: script
+    skill: pipelines/mental-etudiant-henri/script-director
+    produces: [script, youtube_metadata]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - French narration is 1100–1200 words for the eight-minute long-form, or 90–120 words when metadata.test_scope is one-minute-demo
+      - Hook is approximately 30 seconds and the body has exactly five chapters
+      - Advice is compassionate, practical, non-clinical, and not presented as diagnosis
+      - Exactly three powerful French titles are generated and the strongest is selected
+      - French description and three matching thumbnail text ideas target students in France
+    success_criteria:
+      - "Script duration matches its mode: 8 minutes long-form, or 60 seconds for the explicitly requested demo"
+      - Script follows hook, five chapters, and conclusion
+      - Metadata is in French and tailored to the chosen topic
+  - name: assets
+    skill: pipelines/mental-etudiant-henri/asset-director
+    required_artifacts_in: [script]
+    produces: [asset_manifest]
+    required_tools: [gtts_tts]
+    tools_available: [gtts_tts]
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - gTTS uses French with slow=False; FFmpeg applies rate 0.85 and a slight pitch shift
+      - Henri is described as a style target only; no claim of a real Henri voice identity
+    success_criteria:
+      - Narration covers the approved script without substituting an unapproved voice
+  - name: compose
+    skill: pipelines/explainer/compose-director
+    required_artifacts_in: [script, asset_manifest]
+    produces: [render_report]
+    required_tools: [video_compose]
+    tools_available: [video_compose]
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - Visuals use the channel colors and minimal typographic treatment
+      - "Render duration matches the script mode (8 minutes long-form, 60 seconds demo) and audio is present"
+    success_criteria:
+      - Final MP4 renders to the project workspace and matches the approved script
