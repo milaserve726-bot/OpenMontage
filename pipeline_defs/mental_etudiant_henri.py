@@ -1,4 +1,33 @@
-"""Editable channel brief for the Mental Étudiant long-form pipeline.
+cat > .github/workflows/daily.yml << 'EOF'
+name: Daily Video
+on:
+  schedule:
+      - cron: '0 17 * * *'
+        workflow_dispatch:
+        jobs:
+          build:
+              runs-on: ubuntu-latest
+                  steps:
+                        - uses: actions/checkout@v4
+                              - uses: actions/setup-python@v5
+                                      with:
+                                                python-version: '3.11'
+                                                      - name: Install deps
+                                                              run: pip install moviepy imageio-ffmpeg Pillow gtts google-api-python-client google-auth-oauthlib google-auth-httplib2
+                                                                    - name: Run OpenMontage 9min
+                                                                            run: python run_daily_real_video.py --duration-seconds 540
+                                                                                  - name: Make Thumbnail
+                                                                                          run: python -c "from PIL import Image, ImageDraw; im=Image.new('RGB',(1280,720),(10,10,10)); d=ImageDraw.Draw(im); d.text((80,280),'MENTAL ETUDIANT',fill=(250,204,21)); d.text((80,380),'Stress Examen - Reste Concentre',fill=(255,255,255)); im.save('thumbnail.jpg')"
+                                                                                                - name: Upload to YouTube
+                                                                                                        env:
+                                                                                                                  YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+                                                                                                                            YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+                                                                                                                                      YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+                                                                                                                                              run: python upload.py
+                                                                                                                                              EOF
+                                                                                                                                              git add .
+                                                                                                                                              git commit -m "factory full thumbnail title upload"
+                                                                                                                                              git push"""Editable channel brief for the Mental Étudiant long-form pipeline.
 
 Change TOPIC, then ask the OpenMontage agent to run the
 ``mental_etudiant_henri`` pipeline. Pipeline orchestration stays in its YAML
