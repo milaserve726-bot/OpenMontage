@@ -11,4 +11,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run OpenMontage
-        run: python main.py
+        run: python run_daily_real_video.py
