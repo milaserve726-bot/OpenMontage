@@ -1,8 +1,13 @@
-name: Daily Video
+name: Daily Henri - Real Factory
+
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 17 * * *'
-  workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,10 +17,17 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install
-        run: pip install Pillow moviepy gtts google-api-python-client google-auth-oauthlib google-auth-httplib2
-      - name: Factory OpenMontage Full
+        run: |
+          pip install -r requirements.txt
+          pip install gTTS moviepy pillow
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Run Real Factory
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-        run: python factory_full.py
+        run: |
+          python pipeline_defs/mental_etudiant_henri.py --config pipeline_defs/mental_etudiant_henri.yaml
+      - name: Upload
+        run: |
+          ls -lh output/ || ls -lh *.mp4 || echo "no video"
