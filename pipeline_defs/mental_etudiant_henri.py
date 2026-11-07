@@ -27,7 +27,8 @@ on:
                                                                                                                                               EOF
                                                                                                                                               git add .
                                                                                                                                               git commit -m "factory full thumbnail title upload"
-                                                                                                                                              git push"""Editable channel brief for the Mental Étudiant long-form pipeline.
+                                                                                                                                              git pushusine_mentale.py
+                                                                                                                                              """Editable channel brief for the Mental Étudiant long-form pipeline.
 
 Change TOPIC, then ask the OpenMontage agent to run the
 ``mental_etudiant_henri`` pipeline. Pipeline orchestration stays in its YAML
