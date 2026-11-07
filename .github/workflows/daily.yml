@@ -16,7 +16,7 @@ jobs:
       - name: Install deps
         run: |
           pip install -r requirements.txt
-          pip install moviepy imageio-ffmpeg Pillow requests gtts openai
+          pip install moviepy imageio-ffmpeg Pillow requests gtts openai google-api-python-client google-auth-oauthlib google-auth-httplib2 httplib2
       - name: Run OpenMontage
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
