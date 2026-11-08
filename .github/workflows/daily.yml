@@ -1,13 +1,10 @@
 name: Daily Henri - Real Factory
-
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 17 * * *'
-
 permissions:
   contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,6 +25,12 @@ jobs:
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
         run: |
           python pipeline_defs/mental_etudiant_henri.py --config pipeline_defs/mental_etudiant_henri.yaml
-      - name: Upload
+      - name: Check Output
         run: |
           ls -lh output/ || ls -lh *.mp4 || echo "no video"
+      - name: Upload Henri Factory Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: henri-video-complet
+          path: output/
+          if-no-files-found: warn
